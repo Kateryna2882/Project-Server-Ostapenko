@@ -3,8 +3,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientApp {
+    private static final Logger logger = Logger.getLogger(ClientApp.class.getName());
+
     public static void main(String[] args) {
         final String SERVER_IP = "127.0.0.1"; // або "localhost" для локального тесту
         final int SERVER_PORT = 8081;
@@ -15,17 +20,31 @@ public class ClientApp {
 
             // Отримуємо привітання від сервера
             String serverGreeting = in.readLine();
-            System.out.println("Server: " + serverGreeting);
+            logger.info("Server: " + serverGreeting);
+
+            // Запускаємо окремий потік для читання від сервера
+            new Thread(() -> {
+                try {
+                    String response;
+                    while ((response = in.readLine()) != null) {
+                        logger.info("Server: " + response);
+                    }
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "Exception occurred while reading from server", e);
+                }
+            }).start();
 
             // Відправляємо привітання на сервер
             out.println("привіт");
 
-            // Отримуємо відповідь від сервера
-            String response = in.readLine();
-            System.out.println("Server: " + response);
+            // Очікуємо введення користувача
+            BufferedReader userInputReader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print("Введіть що-небудь та натисніть Enter: ");
+            String userInput = userInputReader.readLine();
+            out.println(userInput);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Exception occurred", e);
         }
     }
 }
